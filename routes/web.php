@@ -25,7 +25,10 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Route accessibili da entrambi i ruoli
-    Route::get('/tracciamento', [TracciamentoController::class, 'index'])->name('tracciamento.index');
+    Route::resource('tracciamento', TracciamentoController::class);
     Route::get('/timbrature', [TimbratureController::class, 'index'])->name('timbrature.index');
+
+    Route::post('/timbrature/entrata', [TimbratureController::class, 'entrata'])->name('timbrature.entrata');
+    Route::post('/timbrature/uscita', [TimbratureController::class, 'uscita'])->name('timbrature.uscita');
 
 });

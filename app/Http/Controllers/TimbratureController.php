@@ -3,62 +3,82 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Timbratura;
+use App\Models\Cantiere;
 
 class TimbratureController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $user = auth()->user();
+
+        // Admin vede tutte le timbrature
+        if ($user->isAdmin()) {
+            $timbrature = Timbratura::with(['dipendente', 'cantiere'])
+                                ->latest('entrata')
+                                ->get();
+            return view('timbrature.index', compact('timbrature'));
+        }
+
+        // Dipendente vede solo le sue
+        $dipendente = $user->dipendente;
+        $timbrature = Timbratura::with('cantiere')
+                            ->where('dipendente_id', $dipendente->id)
+                            ->latest('entrata')
+                            ->get();
+
+        $cantieri = $dipendente->cantieri()->where('stato', 'attivo')->get();
+
+        return view('timbrature.index', compact('timbrature', 'cantieri'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    // Dipendente timbra entrata
+    public function entrata(Request $request)
     {
-        //
+        $request->validate([
+            'cantiere_id' => 'required|exists:cantieri,id',
+        ]);
+
+        $dipendente = auth()->user()->dipendente;
+
+        // Controlla se ha già una timbratura aperta
+        $aperta = Timbratura::where('dipendente_id', $dipendente->id)
+                            ->whereNull('uscita')
+                            ->first();
+
+        if ($aperta) {
+            return redirect()->route('timbrature.index')
+                             ->with('error', 'Hai già una timbratura aperta!');
+        }
+
+        Timbratura::create([
+            'dipendente_id' => $dipendente->id,
+            'cantiere_id'   => $request->cantiere_id,
+            'entrata'       => now(),
+        ]);
+
+        return redirect()->route('timbrature.index')
+                         ->with('success', 'Entrata registrata!');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    // Dipendente timbra uscita
+    public function uscita()
     {
-        //
-    }
+        $dipendente = auth()->user()->dipendente;
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        $timbratura = Timbratura::where('dipendente_id', $dipendente->id)
+                                ->whereNull('uscita')
+                                ->first();
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+        if (!$timbratura) {
+            return redirect()->route('timbrature.index')
+                             ->with('error', 'Nessuna timbratura aperta trovata!');
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+        $timbratura->update(['uscita' => now()]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return redirect()->route('timbrature.index')
+                         ->with('success', 'Uscita registrata!');
     }
 }

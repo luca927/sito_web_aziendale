@@ -3,62 +3,90 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Cantiere;
+use App\Models\Dipendente;
 
 class CantiereController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $cantieri = Cantiere::with('dipendenti')->latest()->get();
+        return view('cantieri.index', compact('cantieri'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        $dipendenti = Dipendente::all();
+        return view('cantieri.create', compact('dipendenti'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nome'       => 'required|string|max:255',
+            'indirizzo'  => 'required|string',
+            'latitudine' => 'nullable|numeric',
+            'longitudine'=> 'nullable|numeric',
+            'data_inizio'=> 'nullable|date',
+            'data_fine'  => 'nullable|date',
+            'stato'      => 'required|in:attivo,completato,sospeso',
+        ]);
+
+        $cantiere = Cantiere::create($request->all());
+
+        // Assegna dipendenti se selezionati
+        if ($request->has('dipendenti')) {
+            $cantiere->dipendenti()->attach($request->dipendenti, [
+                'data_assegnazione' => now()
+            ]);
+        }
+
+        return redirect()->route('cantieri.index')
+                         ->with('success', 'Cantiere creato con successo!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Cantiere $cantiere)
     {
-        //
+        $cantiere->load('dipendenti', 'tracciamenti');
+        return view('cantieri.show', compact('cantiere'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function edit(Cantiere $cantiere)
     {
-        //
+        $dipendenti = Dipendente::all();
+        $assegnati  = $cantiere->dipendenti->pluck('id')->toArray();
+        return view('cantieri.edit', compact('cantiere', 'dipendenti', 'assegnati'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Cantiere $cantiere)
     {
-        //
+        $request->validate([
+            'nome'       => 'required|string|max:255',
+            'indirizzo'  => 'required|string',
+            'latitudine' => 'nullable|numeric',
+            'longitudine'=> 'nullable|numeric',
+            'data_inizio'=> 'nullable|date',
+            'data_fine'  => 'nullable|date',
+            'stato'      => 'required|in:attivo,completato,sospeso',
+        ]);
+
+        $cantiere->update($request->all());
+
+        // Aggiorna dipendenti assegnati
+        if ($request->has('dipendenti')) {
+            $cantiere->dipendenti()->sync(collect($request->dipendenti)->mapWithKeys(fn($id) => [
+                $id => ['data_assegnazione' => now()]
+            ]));
+        }
+
+        return redirect()->route('cantieri.index')
+                         ->with('success', 'Cantiere aggiornato!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(Cantiere $cantiere)
     {
-        //
+        $cantiere->delete();
+        return redirect()->route('cantieri.index')
+                         ->with('success', 'Cantiere eliminato!');
     }
 }

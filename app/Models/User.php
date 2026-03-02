@@ -56,4 +56,9 @@ class User extends Authenticatable
     {
         return $this->ruolo === 'dipendente';
     }
+
+    public function dipendente() 
+    {
+        return $this->hasOne(Dipendente::class);
+    }
 }
