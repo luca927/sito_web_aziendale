@@ -23,15 +23,17 @@ class DipendenteController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nome'     => 'required|string|max:255',
-            'cognome'  => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'telefono' => 'nullable|string|max:20',
-            'mansione' => 'nullable|string|max:255',
-            'password' => 'required|min:8',
+            'nome'           => 'required|string|max:255',
+            'cognome'        => 'required|string|max:255',
+            'email'          => 'required|email|unique:users,email',
+            'telefono'       => 'nullable|string|max:20',
+            'codice_fiscale' => 'nullable|string|max:16',
+            'mansione'       => 'nullable|string|max:255',
+            'indirizzo'      => 'nullable|string|max:255',
+            'data_assunzione'=> 'nullable|date',
+            'password'       => 'required|min:8|confirmed',
         ]);
 
-        // Crea l'utente collegato
         $user = User::create([
             'name'     => $request->nome . ' ' . $request->cognome,
             'email'    => $request->email,
@@ -39,19 +41,45 @@ class DipendenteController extends Controller
             'ruolo'    => 'dipendente',
         ]);
 
-        // Crea il dipendente collegato all'utente
         Dipendente::create([
-            'user_id'  => $user->id,
-            'nome'     => $request->nome,
-            'cognome'  => $request->cognome,
-            'telefono' => $request->telefono,
-            'mansione' => $request->mansione,
+            'user_id'        => $user->id,
+            'nome'           => $request->nome,
+            'cognome'        => $request->cognome,
+            'telefono'       => $request->telefono,
+            'codice_fiscale' => $request->codice_fiscale,
+            'mansione'       => $request->mansione,
+            'indirizzo'      => $request->indirizzo,
+            'data_assunzione'=> $request->data_assunzione,
         ]);
 
         return redirect()->route('dipendenti.index')
-                         ->with('success', 'Dipendente creato con successo!');
+                        ->with('success', 'Dipendente aggiunto con successo!');
     }
 
+    public function update(Request $request, Dipendente $dipendente)
+    {
+        $request->validate([
+            'nome'           => 'required|string|max:255',
+            'cognome'        => 'required|string|max:255',
+            'telefono'       => 'nullable|string|max:20',
+            'codice_fiscale' => 'nullable|string|max:16',
+            'mansione'       => 'nullable|string|max:255',
+            'indirizzo'      => 'nullable|string|max:255',
+            'data_assunzione'=> 'nullable|date',
+        ]);
+
+        $dipendente->update($request->only([
+            'nome', 'cognome', 'telefono', 'codice_fiscale',
+            'mansione', 'indirizzo', 'data_assunzione'
+        ]));
+
+        $dipendente->user->update([
+            'name' => $request->nome . ' ' . $request->cognome
+        ]);
+
+        return redirect()->route('dipendenti.index')
+                        ->with('success', 'Dipendente aggiornato!');
+    }
     public function show(Dipendente $dipendente)
     {
         $dipendente->load(['user', 'cantieri', 'mezzi', 'timbrature']);
@@ -61,26 +89,6 @@ class DipendenteController extends Controller
     public function edit(Dipendente $dipendente)
     {
         return view('dipendenti.edit', compact('dipendente'));
-    }
-
-    public function update(Request $request, Dipendente $dipendente)
-    {
-        $request->validate([
-            'nome'     => 'required|string|max:255',
-            'cognome'  => 'required|string|max:255',
-            'telefono' => 'nullable|string|max:20',
-            'mansione' => 'nullable|string|max:255',
-        ]);
-
-        $dipendente->update($request->only(['nome', 'cognome', 'telefono', 'mansione']));
-
-        // Aggiorna anche il nome sull'utente collegato
-        $dipendente->user->update([
-            'name' => $request->nome . ' ' . $request->cognome
-        ]);
-
-        return redirect()->route('dipendenti.index')
-                         ->with('success', 'Dipendente aggiornato!');
     }
 
     public function destroy(Dipendente $dipendente)

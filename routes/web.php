@@ -25,9 +25,14 @@ Route::middleware(['auth'])->group(function () {
 
     // Route solo ADMIN
     Route::middleware(['admin'])->group(function () {
-        Route::resource('dipendenti', DipendenteController::class);
-        Route::resource('cantieri', CantiereController::class);
-        Route::resource('mezzi', MezzoController::class);
+        Route::resource('dipendenti', DipendenteController::class)
+            ->parameters(['dipendenti' => 'dipendente']);
+
+        Route::resource('cantieri', CantiereController::class)
+            ->parameters(['cantieri' => 'cantiere']);
+
+        Route::resource('mezzi', MezzoController::class)
+            ->parameters(['mezzi' => 'mezzo']);
 
         Route::resource('gestione_utenti', GestioneUtentiController::class)
         ->except(['show'])

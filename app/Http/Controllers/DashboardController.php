@@ -16,6 +16,7 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         if (!$user instanceof \App\Models\User) {
+            Auth::logout();
             return redirect('/login');
         }
 
