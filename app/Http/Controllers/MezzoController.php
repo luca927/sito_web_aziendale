@@ -27,7 +27,7 @@ class MezzoController extends Controller
             'tipo'          => 'required|string|max:255',
             'targa'         => 'required|string|max:20|unique:mezzi,targa',
             'modello'       => 'nullable|string|max:255',
-            'stato'         => 'required|in:disponibile,in_uso,manutenzione',
+            'stato'         => 'required|in:attivo,in_manutenzione,fuori_uso',
         ]);
 
         Mezzo::create($request->all());
@@ -55,7 +55,7 @@ class MezzoController extends Controller
             'tipo'          => 'required|string|max:255',
             'targa'         => 'required|string|max:20|unique:mezzi,targa,' . $mezzo->id,
             'modello'       => 'nullable|string|max:255',
-            'stato'         => 'required|in:disponibile,in_uso,manutenzione',
+            'stato'         => 'required|in:attivo,in_manutenzione,fuori_uso',
         ]);
 
         $mezzo->update($request->all());
