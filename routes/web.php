@@ -9,6 +9,11 @@ use App\Http\Controllers\TracciamentoController;
 use App\Http\Controllers\TimbratureController;
 use App\Http\Controllers\GestioneUtentiController;
 
+// Redirect dalla root al login
+Route::get('/', function () {
+    return redirect('/login');
+});
+
 // Route pubblica — login/register (gestite da Breeze)
 require __DIR__.'/auth.php';
 

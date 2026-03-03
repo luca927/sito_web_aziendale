@@ -34,13 +34,13 @@ class GestioneUtentiController extends Controller
         $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
-            'username' => 'required|string|unique:users,username',
+            'username' => 'nullable|string|unique:users,username',
             'ruolo'    => 'required|in:admin,manager,dipendente',
             'livello'  => 'nullable|in:junior,middle,senior',
             'password' => 'required|min:8|confirmed',
         ]);
 
-        User::create([
+        $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'username' => $request->username,
@@ -49,8 +49,18 @@ class GestioneUtentiController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Se è un dipendente crea anche il record in dipendenti
+        if ($request->ruolo === 'dipendente') {
+            $nomeCognome = explode(' ', $request->name, 2);
+            Dipendente::create([
+                'user_id'  => $user->id,
+                'nome'     => $nomeCognome[0],
+                'cognome'  => $nomeCognome[1] ?? '',
+            ]);
+        }
+
         return redirect()->route('gestione_utenti.index')
-                         ->with('success', 'Utente creato con successo!');
+                        ->with('success', 'Utente creato con successo!');
     }
 
     public function edit(User $user)

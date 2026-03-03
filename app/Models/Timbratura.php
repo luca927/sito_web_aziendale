@@ -8,8 +8,9 @@ class Timbratura extends Model
 {
     protected $table = 'timbrature';
 
-    protected $fillable = [
-        'dipendente_id', 'cantiere_id', 'entrata', 'uscita'
+   protected $fillable = [
+    'dipendente_id', 'cantiere_id', 'causale',
+    'entrata', 'uscita', 'latitudine', 'longitudine'
     ];
 
     public function dipendente() {

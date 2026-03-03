@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Timbratura;
 use App\Models\Cantiere;
 
@@ -13,36 +12,40 @@ class TimbratureController extends Controller
     {
         $user = auth()->user();
 
-        // Admin vede tutte le timbrature
         if ($user->isAdmin()) {
             $timbrature = Timbratura::with(['dipendente', 'cantiere'])
+                                ->whereDate('entrata', today())
                                 ->latest('entrata')
                                 ->get();
             return view('timbrature.index', compact('timbrature'));
         }
 
-        // Dipendente vede solo le sue
         $dipendente = $user->dipendente;
         $timbrature = Timbratura::with('cantiere')
                             ->where('dipendente_id', $dipendente->id)
+                            ->whereDate('entrata', today())
                             ->latest('entrata')
                             ->get();
 
         $cantieri = $dipendente->cantieri()->where('stato', 'attivo')->get();
+        $timbraturaAperta = Timbratura::where('dipendente_id', $dipendente->id)
+                                      ->whereNull('uscita')
+                                      ->first();
 
-        return view('timbrature.index', compact('timbrature', 'cantieri'));
+        return view('timbrature.index', compact('timbrature', 'cantieri', 'timbraturaAperta'));
     }
 
-    // Dipendente timbra entrata
     public function entrata(Request $request)
     {
         $request->validate([
             'cantiere_id' => 'required|exists:cantieri,id',
+            'causale'     => 'nullable|string',
+            'latitudine'  => 'nullable|numeric',
+            'longitudine' => 'nullable|numeric',
         ]);
 
         $dipendente = auth()->user()->dipendente;
 
-        // Controlla se ha già una timbratura aperta
         $aperta = Timbratura::where('dipendente_id', $dipendente->id)
                             ->whereNull('uscita')
                             ->first();
@@ -55,15 +58,17 @@ class TimbratureController extends Controller
         Timbratura::create([
             'dipendente_id' => $dipendente->id,
             'cantiere_id'   => $request->cantiere_id,
+            'causale'       => $request->causale ?? 'Lavoro Ordinario',
             'entrata'       => now(),
+            'latitudine'    => $request->latitudine,
+            'longitudine'   => $request->longitudine,
         ]);
 
         return redirect()->route('timbrature.index')
                          ->with('success', 'Entrata registrata!');
     }
 
-    // Dipendente timbra uscita
-    public function uscita()
+    public function uscita(Request $request)
     {
         $dipendente = auth()->user()->dipendente;
 
@@ -76,7 +81,11 @@ class TimbratureController extends Controller
                              ->with('error', 'Nessuna timbratura aperta trovata!');
         }
 
-        $timbratura->update(['uscita' => now()]);
+        $timbratura->update([
+            'uscita'      => now(),
+            'latitudine'  => $request->latitudine,
+            'longitudine' => $request->longitudine,
+        ]);
 
         return redirect()->route('timbrature.index')
                          ->with('success', 'Uscita registrata!');
