@@ -40,6 +40,9 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('gestione_utenti/{user}/reset-password', [GestioneUtentiController::class, 'resetPassword'])
         ->name('gestione_utenti.reset-password');
+
+        Route::post('dashboard/assegna-cantiere/{dipendente}', [DashboardController::class, 'assegnaCantiere'])->name('dashboard.assegna-cantiere');
+        Route::post('dashboard/assegna-mezzo/{dipendente}', [DashboardController::class, 'assegnaMezzo'])->name('dashboard.assegna-mezzo');
     });
 
     // Route accessibili da entrambi i ruoli

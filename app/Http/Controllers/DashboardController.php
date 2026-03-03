@@ -33,6 +33,8 @@ class DashboardController extends Controller
                 'cantieri'   => Cantiere::where('stato', 'attivo')->get(),
                 'dipendenti' => Dipendente::all(),
                 'mezzi'      => Mezzo::all(),
+                // Dati combinati
+                'dati_combinati' => Dipendente::with(['cantieri', 'mezzi'])->get(),
             ];
 
             return view('dashboard.admin', compact('dati'));
@@ -59,4 +61,33 @@ class DashboardController extends Controller
 
         return view('dashboard.dipendente', compact('dati'));
     }
+
+    public function assegnaCantiere(Request $request, Dipendente $dipendente)
+        {
+            if ($request->cantiere_id) {
+                // Sync — sostituisce le assegnazioni esistenti
+                $dipendente->cantieri()->sync([
+                    $request->cantiere_id => ['data_assegnazione' => now()]
+                ]);
+            } else {
+                $dipendente->cantieri()->detach();
+            }
+
+            return redirect()->route('dashboard')
+                            ->with('success', 'Cantiere aggiornato!');
+        }
+
+        public function assegnaMezzo(Request $request, Dipendente $dipendente)
+        {
+            if ($request->mezzo_id) {
+                // Aggiorna il mezzo — cambia il dipendente_id
+                Mezzo::where('dipendente_id', $dipendente->id)->update(['dipendente_id' => null]);
+                Mezzo::find($request->mezzo_id)->update(['dipendente_id' => $dipendente->id]);
+            } else {
+                Mezzo::where('dipendente_id', $dipendente->id)->update(['dipendente_id' => null]);
+            }
+
+            return redirect()->route('dashboard')
+                            ->with('success', 'Mezzo aggiornato!');
+        }
 }

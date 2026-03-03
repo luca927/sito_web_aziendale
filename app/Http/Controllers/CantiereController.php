@@ -46,6 +46,13 @@ class CantiereController extends Controller
                         ->with('success', 'Cantiere creato con successo!');
     }
 
+    public function edit(Cantiere $cantiere)
+    {
+        $dipendenti = Dipendente::all();
+        $assegnati  = $cantiere->dipendenti->pluck('id')->toArray();
+        return view('cantieri.edit', compact('cantiere', 'dipendenti', 'assegnati'));
+    }
+
     public function update(Request $request, Cantiere $cantiere)
     {
         $request->validate([
