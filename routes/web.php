@@ -7,6 +7,7 @@ use App\Http\Controllers\CantiereController;
 use App\Http\Controllers\MezzoController;
 use App\Http\Controllers\TracciamentoController;
 use App\Http\Controllers\TimbratureController;
+use App\Http\Controllers\GestioneUtentiController;
 
 // Route pubblica — login/register (gestite da Breeze)
 require __DIR__.'/auth.php';
@@ -22,6 +23,13 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('dipendenti', DipendenteController::class);
         Route::resource('cantieri', CantiereController::class);
         Route::resource('mezzi', MezzoController::class);
+
+        Route::resource('gestione_utenti', GestioneUtentiController::class)
+        ->except(['show'])
+        ->parameters(['gestione_utenti' => 'user']);
+
+        Route::post('gestione_utenti/{user}/reset-password', [GestioneUtentiController::class, 'resetPassword'])
+        ->name('gestione_utenti.reset-password');
     });
 
     // Route accessibili da entrambi i ruoli

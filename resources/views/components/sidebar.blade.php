@@ -70,7 +70,7 @@
             </a>
 
             {{-- Gestione Utenti --}}
-            <a href="#"
+            <a href="{{ route('gestione_utenti.index') }}"
                class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-blue-100 hover:bg-blue-800">
                 <span>👥</span> Gestione Utenti
             </a>
