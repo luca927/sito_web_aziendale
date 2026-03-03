@@ -20,11 +20,13 @@ class CantiereController extends Controller
         return view('cantieri.create', compact('dipendenti'));
     }
 
-    public function store(Request $request)
+   public function store(Request $request)
     {
         $request->validate([
             'nome'       => 'required|string|max:255',
             'indirizzo'  => 'required|string',
+            'referente'  => 'nullable|string|max:255',
+            'giorni'     => 'nullable|string|max:255',
             'latitudine' => 'nullable|numeric',
             'longitudine'=> 'nullable|numeric',
             'data_inizio'=> 'nullable|date',
@@ -32,9 +34,8 @@ class CantiereController extends Controller
             'stato'      => 'required|in:attivo,completato,sospeso',
         ]);
 
-        $cantiere = Cantiere::create($request->all());
+        $cantiere = Cantiere::create($request->except('dipendenti'));
 
-        // Assegna dipendenti se selezionati
         if ($request->has('dipendenti')) {
             $cantiere->dipendenti()->attach($request->dipendenti, [
                 'data_assegnazione' => now()
@@ -42,20 +43,7 @@ class CantiereController extends Controller
         }
 
         return redirect()->route('cantieri.index')
-                         ->with('success', 'Cantiere creato con successo!');
-    }
-
-    public function show(Cantiere $cantiere)
-    {
-        $cantiere->load('dipendenti', 'tracciamenti');
-        return view('cantieri.show', compact('cantiere'));
-    }
-
-    public function edit(Cantiere $cantiere)
-    {
-        $dipendenti = Dipendente::all();
-        $assegnati  = $cantiere->dipendenti->pluck('id')->toArray();
-        return view('cantieri.edit', compact('cantiere', 'dipendenti', 'assegnati'));
+                        ->with('success', 'Cantiere creato con successo!');
     }
 
     public function update(Request $request, Cantiere $cantiere)
@@ -63,6 +51,8 @@ class CantiereController extends Controller
         $request->validate([
             'nome'       => 'required|string|max:255',
             'indirizzo'  => 'required|string',
+            'referente'  => 'nullable|string|max:255',
+            'giorni'     => 'nullable|string|max:255',
             'latitudine' => 'nullable|numeric',
             'longitudine'=> 'nullable|numeric',
             'data_inizio'=> 'nullable|date',
@@ -70,17 +60,16 @@ class CantiereController extends Controller
             'stato'      => 'required|in:attivo,completato,sospeso',
         ]);
 
-        $cantiere->update($request->all());
+        $cantiere->update($request->except('dipendenti'));
 
-        // Aggiorna dipendenti assegnati
-        if ($request->has('dipendenti')) {
-            $cantiere->dipendenti()->sync(collect($request->dipendenti)->mapWithKeys(fn($id) => [
+        $cantiere->dipendenti()->sync(
+            collect($request->dipendenti ?? [])->mapWithKeys(fn($id) => [
                 $id => ['data_assegnazione' => now()]
-            ]));
-        }
+            ])
+        );
 
         return redirect()->route('cantieri.index')
-                         ->with('success', 'Cantiere aggiornato!');
+                        ->with('success', 'Cantiere aggiornato!');
     }
 
     public function destroy(Cantiere $cantiere)
