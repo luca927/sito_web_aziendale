@@ -95,15 +95,17 @@
 
     {{-- Utente in basso --}}
     <div class="border-t border-blue-900 p-4">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-sm font-bold">
+        <a href="{{ route('profilo.index') }}"
+        class="flex items-center gap-3 hover:bg-blue-800 rounded-lg p-2 transition-colors">
+            <div class="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-sm font-bold flex-shrink-0">
                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-white truncate">{{ auth()->user()->name }}</p>
                 <p class="text-xs text-blue-300 capitalize">{{ auth()->user()->ruolo }}</p>
             </div>
-        </div>
+            <span class="text-blue-300 text-xs">⚙️</span>
+        </a>
     </div>
 
 </aside>

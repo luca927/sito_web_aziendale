@@ -11,7 +11,7 @@ class DipendenteController extends Controller
 {
     public function index()
     {
-        $dipendenti = Dipendente::with(['user', 'cantieri', 'mezzi'])->latest()->get();
+        $dipendenti = Dipendente::with(['user', 'cantieri', 'mezzi'])->oldest()->get();
         return view('dipendenti.index', compact('dipendenti'));
     }
 

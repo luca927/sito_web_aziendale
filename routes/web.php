@@ -8,6 +8,7 @@ use App\Http\Controllers\MezzoController;
 use App\Http\Controllers\TracciamentoController;
 use App\Http\Controllers\TimbratureController;
 use App\Http\Controllers\GestioneUtentiController;
+use App\Http\Controllers\ProfiloController;
 
 // Redirect dalla root al login
 Route::get('/', function () {
@@ -22,6 +23,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboard — accessibile da entrambi i ruoli
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/profilo', [ProfiloController::class, 'index'])->name('profilo.index');
+    Route::post('/profilo/dati', [ProfiloController::class, 'aggiornaDati'])->name('profilo.dati');
+    Route::post('/profilo/password', [ProfiloController::class, 'aggiornaPassword'])->name('profilo.password');
 
     // Route solo ADMIN
     Route::middleware(['admin'])->group(function () {

@@ -10,7 +10,7 @@ class CantiereController extends Controller
 {
     public function index()
     {
-        $cantieri = Cantiere::with('dipendenti')->latest()->get();
+        $cantieri = Cantiere::with('dipendenti')->oldest()->get();
         return view('cantieri.index', compact('cantieri'));
     }
 
