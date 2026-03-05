@@ -7,10 +7,10 @@
 
     <h1 class="text-2xl font-bold text-blue-700 mb-6">🏠 La mia Dashboard</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
         {{-- I miei cantieri --}}
-        <div class="bg-white rounded-xl shadow p-6 md:col-span-2">
+        <div class="bg-white rounded-xl shadow p-6">
             <h2 class="text-base font-semibold text-gray-800 mb-4">🏗️ I miei Cantieri</h2>
             @forelse($dati['cantieri'] as $cantiere)
                 <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
@@ -35,9 +35,15 @@
         <div class="bg-white rounded-xl shadow p-6">
             <h2 class="text-base font-semibold text-gray-800 mb-4">🚛 I miei Mezzi</h2>
             @forelse($dati['mezzi'] as $mezzo)
-                <div class="py-3 border-b border-gray-100 last:border-0">
-                    <p class="text-sm font-medium text-gray-800">{{ $mezzo->modello ?? $mezzo->tipo }}</p>
-                    <p class="text-xs text-gray-500">{{ $mezzo->targa }}</p>
+                <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                    <div>
+                        <p class="text-sm font-medium text-gray-800">{{ $mezzo->modello ?? $mezzo->tipo }}</p>
+                        <p class="text-xs text-gray-500">{{ $mezzo->targa }}</p>
+                    </div>
+                    <span class="px-2 py-1 rounded-full text-xs font-semibold
+                        {{ $mezzo->stato === 'attivo' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' }}">
+                        {{ $mezzo->stato }}
+                    </span>
                 </div>
             @empty
                 <p class="text-sm text-gray-400">Nessun mezzo assegnato.</p>
@@ -46,7 +52,7 @@
 
     </div>
 
-    {{-- Timbrature recenti --}}
+    {{-- Ultime timbrature --}}
     <div class="bg-white rounded-xl shadow p-6">
         <h2 class="text-base font-semibold text-gray-800 mb-4">🕐 Ultime Timbrature</h2>
         @forelse($dati['timbrature'] as $t)

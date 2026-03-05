@@ -1,4 +1,4 @@
-<aside class="w-64 bg-[#1a2a4a] text-white flex flex-col flex-shrink-0">
+<aside class="w-64 bg-[#1a2a4a] text-white flex flex-col flex-shrink-0 h-full min-h-screen">
 
     {{-- Logo --}}
     <div class="h-16 flex items-center px-6 border-b border-blue-900">
