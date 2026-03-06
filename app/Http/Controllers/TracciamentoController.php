@@ -9,7 +9,6 @@ use App\Models\Cantiere;
 use App\Models\Dipendente;
 use App\Models\Mezzo;
 use League\Csv\Writer;
-use SplTempFileObject;
 
 class TracciamentoController extends Controller
 {
@@ -19,7 +18,7 @@ class TracciamentoController extends Controller
 
         if ($user->isAdmin()) {
             $tracciamenti = Tracciamento::with(['dipendente', 'cantiere', 'mezzo'])
-                                ->latest('data_ora')
+                                ->oldest('data_ora')
                                 ->get();
             $cantieri   = Cantiere::where('stato', 'attivo')->get();
             $dipendenti = Dipendente::all();
@@ -43,18 +42,16 @@ class TracciamentoController extends Controller
     {
         $request->validate([
             'cantiere_id'   => 'required|exists:cantieri,id',
+            'dipendente_id' => 'nullable|exists:dipendenti,id',
             'mezzo_id'      => 'nullable|exists:mezzi,id',
             'tipo_attivita' => 'nullable|string',
-            'data_ora'      => 'required|date',
+            'data_ora'      => 'required',
             'note'          => 'nullable|string',
         ]);
 
         $dipendente_id = Auth::user()->isAdmin()
             ? $request->dipendente_id
             : Auth::user()->dipendente->id;
-
-        // Prendi coordinate dal cantiere
-        $cantiere = Cantiere::find($request->cantiere_id);
 
         Tracciamento::create([
             'dipendente_id' => $dipendente_id,
@@ -66,7 +63,7 @@ class TracciamentoController extends Controller
         ]);
 
         return redirect()->route('tracciamento.index')
-                         ->with('success', 'Tracciamento aggiunto!');
+                        ->with('success', 'Tracciamento aggiunto!');
     }
 
     public function destroy(Tracciamento $tracciamento)

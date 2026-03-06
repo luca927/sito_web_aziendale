@@ -41,53 +41,102 @@ class DashboardController extends Controller
         }
 
         // Dipendente
-        $dipendente = $user->dipendente;
+    $dipendente = $user->dipendente;
 
-        if (!$dipendente) {
-            // Crea automaticamente il profilo dipendente se non esiste
-            $nomeCognome = explode(' ', $user->name, 2);
-            $dipendente = Dipendente::create([
-                'user_id' => $user->id,
-                'nome'    => $nomeCognome[0],
-                'cognome' => $nomeCognome[1] ?? '',
-            ]);
-        }
+    if (!$dipendente) {
+        $nomeCognome = explode(' ', $user->name, 2);
+        $dipendente = Dipendente::create([
+            'user_id' => $user->id,
+            'nome'    => $nomeCognome[0],
+            'cognome' => $nomeCognome[1] ?? '',
+        ]);
+    }
 
-        $dati = [
-            'cantieri'   => $dipendente->cantieri()->where('stato', 'attivo')->get(),
-            'mezzi'      => $dipendente->mezzi,
-            'timbrature' => $dipendente->timbrature()->latest('entrata')->take(5)->get(),
-        ];
+    $dati = [
+        'dipendente'      => $dipendente,
+        'cantieri'        => $dipendente->cantieri()->where('stato', 'attivo')->get(),
+        'mezzi'           => $dipendente->mezzi,
+        'timbrature'      => $dipendente->timbrature()->with('cantiere')->latest('entrata')->take(5)->get(),
+        'totale_attivita' => $dipendente->timbrature()->count(),
+    ];
 
-        return view('dashboard.dipendente', compact('dati'));
+    return view('dashboard.dipendente', compact('dati'));
     }
 
     public function assegnaCantiere(Request $request, Dipendente $dipendente)
-        {
-            if ($request->cantiere_id) {
-                // Sync — sostituisce le assegnazioni esistenti
-                $dipendente->cantieri()->sync([
-                    $request->cantiere_id => ['data_assegnazione' => now()]
+    {
+        if ($request->cantiere_id) {
+            $dipendente->cantieri()->sync([
+                $request->cantiere_id => ['data_assegnazione' => now()]
+            ]);
+
+            // Crea tracciamento solo se non esiste già oggi
+            $esisteGia = Tracciamento::where('dipendente_id', $dipendente->id)
+                                    ->where('cantiere_id', $request->cantiere_id)
+                                    ->whereDate('data_ora', today())
+                                    ->exists();
+
+            if (!$esisteGia) {
+                Tracciamento::create([
+                    'dipendente_id' => $dipendente->id,
+                    'cantiere_id'   => $request->cantiere_id,
+                    'mezzo_id'      => $dipendente->mezzi->first()?->id,
+                    'tipo_attivita' => 'assegnazione',
+                    'data_ora'      => now(),
+                    'note'          => 'Assegnazione automatica da dashboard',
                 ]);
-            } else {
-                $dipendente->cantieri()->detach();
             }
-
-            return redirect()->route('dashboard')
-                            ->with('success', 'Cantiere aggiornato!');
+        } else {
+            $dipendente->cantieri()->detach();
         }
 
-        public function assegnaMezzo(Request $request, Dipendente $dipendente)
-        {
-            if ($request->mezzo_id) {
-                // Aggiorna il mezzo — cambia il dipendente_id
-                Mezzo::where('dipendente_id', $dipendente->id)->update(['dipendente_id' => null]);
-                Mezzo::find($request->mezzo_id)->update(['dipendente_id' => $dipendente->id]);
-            } else {
-                Mezzo::where('dipendente_id', $dipendente->id)->update(['dipendente_id' => null]);
-            }
+        return redirect()->route('dashboard')
+                        ->with('success', 'Cantiere aggiornato!');
+    }
 
-            return redirect()->route('dashboard')
-                            ->with('success', 'Mezzo aggiornato!');
+    public function assegnaMezzo(Request $request, Dipendente $dipendente)
+    {
+        if ($request->mezzo_id) {
+            Mezzo::where('dipendente_id', $dipendente->id)->update(['dipendente_id' => null]);
+            Mezzo::find($request->mezzo_id)->update(['dipendente_id' => $dipendente->id]);
+
+            $cantiere = $dipendente->cantieri()->where('stato', 'attivo')->first();
+
+            if ($cantiere) {
+                // Aggiorna il mezzo sul tracciamento esistente invece di crearne uno nuovo
+                $tracciamento = Tracciamento::where('dipendente_id', $dipendente->id)
+                                            ->where('cantiere_id', $cantiere->id)
+                                            ->whereDate('data_ora', today())
+                                            ->first();
+
+                if ($tracciamento) {
+                    $tracciamento->update(['mezzo_id' => $request->mezzo_id]);
+                } else {
+                    Tracciamento::create([
+                        'dipendente_id' => $dipendente->id,
+                        'cantiere_id'   => $cantiere->id,
+                        'mezzo_id'      => $request->mezzo_id,
+                        'tipo_attivita' => 'assegnazione',
+                        'data_ora'      => now(),
+                        'note'          => 'Assegnazione automatica da dashboard',
+                    ]);
+                }
+            }
+        } else {
+            Mezzo::where('dipendente_id', $dipendente->id)->update(['dipendente_id' => null]);
         }
+
+        return redirect()->route('dashboard')
+                        ->with('success', 'Mezzo aggiornato!');
+    }
+
+    public function rimuoviAssegnazioni(Dipendente $dipendente)
+    {
+        // Rimuove solo le assegnazioni, non il dipendente
+        $dipendente->cantieri()->detach();
+        Mezzo::where('dipendente_id', $dipendente->id)->update(['dipendente_id' => null]);
+
+        return redirect()->route('dashboard')
+                        ->with('success', 'Assegnazioni rimosse!');
+    }
 }

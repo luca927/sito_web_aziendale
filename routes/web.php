@@ -49,9 +49,11 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('dashboard/assegna-cantiere/{dipendente}', [DashboardController::class, 'assegnaCantiere'])->name('dashboard.assegna-cantiere');
         Route::post('dashboard/assegna-mezzo/{dipendente}', [DashboardController::class, 'assegnaMezzo'])->name('dashboard.assegna-mezzo');
+        Route::post('dashboard/rimuovi-assegnazioni/{dipendente}', [DashboardController::class, 'rimuoviAssegnazioni'])->name('dashboard.rimuovi-assegnazioni');
 
         Route::get('cantieri/export-csv', [CantiereController::class, 'exportCsv'])->name('cantieri.export-csv');
         Route::get('tracciamento/export-csv', [TracciamentoController::class, 'exportCsv'])->name('tracciamento.export-csv');
+        
     });
 
     // Route accessibili da entrambi i ruoli

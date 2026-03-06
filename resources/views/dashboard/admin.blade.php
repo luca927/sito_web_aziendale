@@ -182,14 +182,25 @@
                     </td>
 
                     {{-- Azioni --}}
+                   {{-- Azioni --}}
                     <td class="py-3 px-4">
-                        <a href="{{ route('dipendenti.edit', $d) }}"
-                           class="w-8 h-8 bg-yellow-400 hover:bg-yellow-500 text-white rounded flex items-center justify-center transition-colors">
-                            ✏️
-                        </a>
+                        <div class="flex gap-2">
+                            <a href="{{ route('dipendenti.edit', $d) }}"
+                            class="w-8 h-8 bg-yellow-400 hover:bg-yellow-500 text-white rounded flex items-center justify-center transition-colors"
+                            title="Modifica dipendente">
+                                ✏️
+                            </a>
+                            <form method="POST" action="{{ route('dashboard.rimuovi-assegnazioni', $d) }}">
+                                @csrf
+                                <button type="submit"
+                                        class="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded flex items-center justify-center transition-colors"
+                                        title="Rimuovi assegnazioni"
+                                        onclick="return confirm('Rimuovere cantiere e mezzo da {{ $d->nome }} {{ $d->cognome }}?')">
+                                    🗑️
+                                </button>
+                            </form>
+                        </div>
                     </td>
-
-                </tr>
                 @empty
                 <tr>
                     <td colspan="5" class="py-8 text-center text-gray-400">Nessun dipendente trovato.</td>
