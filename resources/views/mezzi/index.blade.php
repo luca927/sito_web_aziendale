@@ -5,6 +5,55 @@
 @section('content')
 <div class="py-6">
 
+    {{-- Banner manutenzioni scadute --}}
+    @if($mezziScaduti->count() > 0)
+        <div class="bg-red-50 border border-red-300 rounded-xl p-4 mb-4">
+            <div class="flex items-start gap-3">
+                <span class="text-2xl">🚨</span>
+                <div>
+                    <p class="font-semibold text-red-700 mb-2">
+                        {{ $mezziScaduti->count() }} mezzo/i con manutenzione SCADUTA!
+                    </p>
+                    @foreach($mezziScaduti as $m)
+                        <div class="flex items-center gap-2 text-sm text-red-600">
+                            <span>•</span>
+                            <span class="font-medium">{{ $m->modello ?? $m->tipo }}</span>
+                            <span class="font-mono bg-red-100 px-1.5 rounded">{{ $m->targa }}</span>
+                            <span>— scaduta il {{ \Carbon\Carbon::parse($m->prossima_manutenzione)->format('d/m/Y') }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Banner manutenzioni in scadenza --}}
+    @if($mezziInScadenza->count() > 0)
+        <div class="bg-yellow-50 border border-yellow-300 rounded-xl p-4 mb-6">
+            <div class="flex items-start gap-3">
+                <span class="text-2xl">⚠️</span>
+                <div>
+                    <p class="font-semibold text-yellow-700 mb-2">
+                        {{ $mezziInScadenza->count() }} mezzo/i con manutenzione in scadenza entro 30 giorni
+                    </p>
+                    @foreach($mezziInScadenza as $m)
+                        @php
+                            $giorni = round(now()->floatDiffInDays(\Carbon\Carbon::parse($m->prossima_manutenzione)));
+                        @endphp
+                        <div class="flex items-center gap-2 text-sm text-yellow-700">
+                            <span>•</span>
+                            <span class="font-medium">{{ $m->modello ?? $m->tipo }}</span>
+                            <span class="font-mono bg-yellow-100 px-1.5 rounded">{{ $m->targa }}</span>
+                            <span>— scade tra <strong>{{ $giorni }} giorni</strong>
+                                ({{ \Carbon\Carbon::parse($m->prossima_manutenzione)->format('d/m/Y') }})
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-blue-700">🚛 Gestione Parco Mezzi</h1>

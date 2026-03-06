@@ -46,17 +46,24 @@
             <div x-data="{ open: {{ request()->routeIs('mezzi.*') ? 'true' : 'false' }} }">
                 <button @click="open = !open"
                         class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors
-                               {{ request()->routeIs('mezzi.*') ? 'bg-blue-600 text-white' : 'text-blue-100 hover:bg-blue-800' }}">
-                    <span class="flex items-center gap-3"><span>🚛</span> Mezzi</span>
+                            {{ request()->routeIs('mezzi.*') ? 'bg-blue-600 text-white' : 'text-blue-100 hover:bg-blue-800' }}">
+                    <span class="flex items-center gap-3">
+                        <span>🚛</span> Mezzi
+                        @if($totaleManutenzioni > 0)
+                            <span class="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                                {{ $totaleManutenzioni }}
+                            </span>
+                        @endif
+                    </span>
                     <span x-text="open ? '▲' : '▼'" class="text-xs"></span>
                 </button>
                 <div x-show="open" class="ml-4 mt-1 space-y-1">
                     <a href="{{ route('mezzi.index') }}"
-                       class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-blue-200 hover:bg-blue-800">
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-blue-200 hover:bg-blue-800">
                         Lista Mezzi
                     </a>
                     <a href="{{ route('mezzi.create') }}"
-                       class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-blue-200 hover:bg-blue-800">
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-sm text-blue-200 hover:bg-blue-800">
                         + Aggiungi
                     </a>
                 </div>
