@@ -67,24 +67,24 @@
         </div>
 
         {{-- Filtri ruolo --}}
-        <div class="px-6 py-3 border-b border-gray-100 flex gap-2">
-            <button onclick="filtraRuolo('tutti')"
+       <div class="px-6 py-3 border-b border-gray-100 flex gap-2">
+            <button @click="filtraRuolo('tutti')"
                     class="filtro-btn px-4 py-1.5 rounded-full text-sm font-medium bg-blue-600 text-white transition-colors"
                     data-ruolo="tutti">
                 Tutti
             </button>
-            <button onclick="filtraRuolo('admin')"
-                    class="filtro-btn px-4 py-1.5 rounded-full text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+            <button @click="filtraRuolo('admin')"
+                    class="filtro-btn px-4 py-1.5 rounded-full text-sm font-medium bg-white border border-gray-300 text-gray-600 transition-colors"
                     data-ruolo="admin">
                 Admin
             </button>
-            <button onclick="filtraRuolo('manager')"
-                    class="filtro-btn px-4 py-1.5 rounded-full text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+            <button @click="filtraRuolo('manager')"
+                    class="filtro-btn px-4 py-1.5 rounded-full text-sm font-medium bg-white border border-gray-300 text-gray-600 transition-colors"
                     data-ruolo="manager">
                 Manager
             </button>
-            <button onclick="filtraRuolo('dipendente')"
-                    class="filtro-btn px-4 py-1.5 rounded-full text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+            <button @click="filtraRuolo('dipendente')"
+                    class="filtro-btn px-4 py-1.5 rounded-full text-sm font-medium bg-white border border-gray-300 text-gray-600 transition-colors"
                     data-ruolo="dipendente">
                 Dipendenti
             </button>
@@ -373,15 +373,15 @@ const gestioneUtenti = () => ({
         });
     },
 
-    // Filtro ruolo
-    filtraRuolo(ruolo) {
+        // Filtra per ruolo
+        filtraRuolo(ruolo) {
         document.querySelectorAll('.filtro-btn').forEach(btn => {
             if (btn.dataset.ruolo === ruolo) {
                 btn.classList.add('bg-blue-600', 'text-white');
-                btn.classList.remove('border', 'border-gray-300', 'text-gray-600');
+                btn.classList.remove('bg-white', 'border', 'border-gray-300', 'text-gray-600');
             } else {
                 btn.classList.remove('bg-blue-600', 'text-white');
-                btn.classList.add('border', 'border-gray-300', 'text-gray-600');
+                btn.classList.add('bg-white', 'border', 'border-gray-300', 'text-gray-600');
             }
         });
         document.querySelectorAll('.utente-row').forEach(row => {
