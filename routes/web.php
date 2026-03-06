@@ -34,6 +34,7 @@ Route::middleware(['auth'])->group(function () {
             ->parameters(['dipendenti' => 'dipendente']);
 
         Route::resource('cantieri', CantiereController::class)
+            ->except(['show'])
             ->parameters(['cantieri' => 'cantiere']);
 
         Route::resource('mezzi', MezzoController::class)
@@ -48,6 +49,9 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('dashboard/assegna-cantiere/{dipendente}', [DashboardController::class, 'assegnaCantiere'])->name('dashboard.assegna-cantiere');
         Route::post('dashboard/assegna-mezzo/{dipendente}', [DashboardController::class, 'assegnaMezzo'])->name('dashboard.assegna-mezzo');
+
+        Route::get('cantieri/export-csv', [CantiereController::class, 'exportCsv'])->name('cantieri.export-csv');
+        Route::get('tracciamento/export-csv', [TracciamentoController::class, 'exportCsv'])->name('tracciamento.export-csv');
     });
 
     // Route accessibili da entrambi i ruoli

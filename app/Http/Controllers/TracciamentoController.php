@@ -8,6 +8,8 @@ use App\Models\Tracciamento;
 use App\Models\Cantiere;
 use App\Models\Dipendente;
 use App\Models\Mezzo;
+use League\Csv\Writer;
+use SplTempFileObject;
 
 class TracciamentoController extends Controller
 {
@@ -72,5 +74,34 @@ class TracciamentoController extends Controller
         $tracciamento->delete();
         return redirect()->route('tracciamento.index')
                          ->with('success', 'Tracciamento eliminato!');
+    }
+
+        public function exportCsv()
+    {
+        $tracciamenti = Tracciamento::with(['dipendente', 'cantiere', 'mezzo'])->latest('data_ora')->get();
+
+        $csv = Writer::createFromString();
+
+        $csv->insertOne([
+            'ID', 'Dipendente', 'Cantiere', 'Mezzo',
+            'Tipo Attività', 'Latitudine', 'Longitudine', 'Data/Ora'
+        ]);
+
+        foreach ($tracciamenti as $t) {
+            $csv->insertOne([
+                $t->id,
+                $t->dipendente->nome . ' ' . $t->dipendente->cognome,
+                $t->cantiere->nome,
+                $t->mezzo->modello ?? $t->mezzo->tipo ?? '—',
+                $t->tipo_attivita ?? '—',
+                $t->cantiere->latitudine ?? '—',
+                $t->cantiere->longitudine ?? '—',
+                \Carbon\Carbon::parse($t->data_ora)->format('d/m/Y H:i'),
+            ]);
+        }
+
+        return response($csv->toString())
+            ->header('Content-Type', 'text/csv; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="tracciamenti_' . now()->format('Y-m-d') . '.csv"');
     }
 }

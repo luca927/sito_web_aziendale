@@ -15,10 +15,16 @@
     {{-- Titolo + bottone aggiungi --}}
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-blue-600">Registro Attività</h2>
-        <button onclick="document.getElementById('modale-aggiungi').classList.remove('hidden')"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
-            + Aggiungi Tracciamento
-        </button>
+        <div class="flex gap-2">
+            <a href="{{ route('tracciamento.export-csv') }}"
+            class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                📊 Export CSV
+            </a>
+            <button onclick="document.getElementById('modale-aggiungi').classList.remove('hidden')"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                + Aggiungi Tracciamento
+            </button>
+        </div>
     </div>
 
     {{-- Tabella --}}

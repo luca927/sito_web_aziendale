@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Cantiere;
 use App\Models\Dipendente;
+use League\Csv\Writer;
+use SplTempFileObject;
 
 class CantiereController extends Controller
 {
@@ -84,5 +86,34 @@ class CantiereController extends Controller
         $cantiere->delete();
         return redirect()->route('cantieri.index')
                          ->with('success', 'Cantiere eliminato!');
+    }
+
+    public function exportCsv()
+    {
+        $cantieri = Cantiere::with('dipendenti')->get();
+
+        $csv = Writer::createFromString();
+
+        $csv->insertOne([
+            'ID', 'Nome', 'Indirizzo', 'Referente',
+            'Data Inizio', 'Data Fine', 'Stato', 'Dipendenti'
+        ]);
+
+        foreach ($cantieri as $c) {
+            $csv->insertOne([
+                $c->id,
+                $c->nome,
+                $c->indirizzo,
+                $c->referente ?? '—',
+                $c->data_inizio ? \Carbon\Carbon::parse($c->data_inizio)->format('d/m/Y') : '—',
+                $c->data_fine ? \Carbon\Carbon::parse($c->data_fine)->format('d/m/Y') : '—',
+                $c->stato,
+                $c->dipendenti->map(fn($d) => $d->nome . ' ' . $d->cognome)->join(', '),
+            ]);
+        }
+
+        return response($csv->toString())
+            ->header('Content-Type', 'text/csv; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="cantieri_' . now()->format('Y-m-d') . '.csv"');
     }
 }
