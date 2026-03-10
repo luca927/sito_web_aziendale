@@ -10,6 +10,51 @@
         {{-- VISTA ADMIN — solo tabella timbrature dipendenti --}}
         <h1 class="text-2xl font-bold text-blue-700 mb-6">🕐 Timbrature Dipendenti</h1>
 
+        {{-- Bottoni export --}}
+        <div class="flex gap-2 mb-6">
+            <a href="{{ route('timbrature.export-pdf') }}"
+            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                📄 PDF Mese Corrente
+            </a>
+            @foreach($dipendenti as $d)
+            @endforeach
+        </div>
+
+        {{-- Select mese + dipendente per export --}}
+        <div class="bg-white rounded-xl shadow p-4 mb-6 flex flex-wrap gap-3 items-end">
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Mese</label>
+                <select id="sel-mese" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @for($m = 1; $m <= 12; $m++)
+                        <option value="{{ $m }}" {{ $m == now()->month ? 'selected' : '' }}>
+                            {{ \Carbon\Carbon::create(null, $m)->locale('it')->isoFormat('MMMM') }}
+                        </option>
+                    @endfor
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Anno</label>
+                <select id="sel-anno" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @for($a = now()->year; $a >= now()->year - 2; $a--)
+                        <option value="{{ $a }}">{{ $a }}</option>
+                    @endfor
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Dipendente</label>
+                <select id="sel-dipendente" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Tutti</option>
+                    @foreach($dipendenti as $d)
+                        <option value="{{ $d->id }}">{{ $d->nome }} {{ $d->cognome }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <button onclick="scaricaPdf()"
+                    class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                📄 Scarica PDF
+            </button>
+        </div>
+
         <div class="bg-white rounded-xl shadow p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="font-semibold text-gray-800">Timbrature di Oggi</h2>
@@ -307,6 +352,13 @@
             filtro.addEventListener('change', () => calendar.refetchEvents());
         }
     });
+
+        const scaricaPdf = () => {
+        const mese       = document.getElementById('sel-mese').value;
+        const anno       = document.getElementById('sel-anno').value;
+        const dipendente = document.getElementById('sel-dipendente')?.value ?? '';
+        window.location.href = `/timbrature/export-pdf?mese=${mese}&anno=${anno}&dipendente_id=${dipendente}`;
+    };
 </script>
 
 @endsection

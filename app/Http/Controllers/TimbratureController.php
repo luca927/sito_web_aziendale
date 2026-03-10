@@ -7,6 +7,7 @@ use App\Models\Timbratura;
 use App\Models\Cantiere;
 use App\Models\Dipendente;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TimbratureController extends Controller
 {
@@ -135,5 +136,49 @@ class TimbratureController extends Controller
         });
 
         return response()->json($timbrature);
+    }
+
+        public function exportPdf(Request $request)
+    {
+        $mese    = $request->mese ?? now()->month;
+        $anno    = $request->anno ?? now()->year;
+        $user    = auth()->user();
+
+        if ($user->isAdmin()) {
+            $dipendente_id = $request->dipendente_id;
+            $query = Timbratura::with(['dipendente', 'cantiere'])
+                ->whereMonth('entrata', $mese)
+                ->whereYear('entrata', $anno);
+
+            if ($dipendente_id) {
+                $query->where('dipendente_id', $dipendente_id);
+            }
+
+            $dipendente = $dipendente_id ? Dipendente::find($dipendente_id) : null;
+        } else {
+            $dipendente = $user->dipendente;
+            $query = Timbratura::with('cantiere')
+                ->where('dipendente_id', $dipendente->id)
+                ->whereMonth('entrata', $mese)
+                ->whereYear('entrata', $anno);
+        }
+
+        $timbrature = $query->orderBy('entrata')->get();
+
+        // Calcola totale ore
+        $totaleMinuti = $timbrature->sum(function($t) {
+            if (!$t->uscita) return 0;
+            return \Carbon\Carbon::parse($t->entrata)->diffInMinutes(\Carbon\Carbon::parse($t->uscita));
+        });
+        $totaleOre = floor($totaleMinuti / 60);
+        $totaleMin = $totaleMinuti % 60;
+
+        $nomeMese = \Carbon\Carbon::create($anno, $mese)->locale('it')->isoFormat('MMMM YYYY');
+
+        $pdf = Pdf::loadView('pdf.timbrature', compact(
+            'timbrature', 'dipendente', 'nomeMese', 'totaleOre', 'totaleMin', 'user'
+        ))->setPaper('a4', 'portrait');
+
+        return $pdf->download("timbrature_{$nomeMese}.pdf");
     }
 }
