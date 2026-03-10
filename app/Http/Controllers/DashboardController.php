@@ -35,6 +35,20 @@ class DashboardController extends Controller
                 'mezzi'      => Mezzo::all(),
                 // Dati combinati
                 'dati_combinati' => Dipendente::with(['cantieri', 'mezzi'])->get(),
+                'ore_lavorate' => Dipendente::with(['timbrature' => function($q) {
+                    $q->whereMonth('entrata', now()->month)
+                    ->whereYear('entrata', now()->year)
+                    ->whereNotNull('uscita');
+                }])->get()->map(function($d) {
+                    $ore = $d->timbrature->sum(function($t) {
+                        return \Carbon\Carbon::parse($t->entrata)
+                                            ->diffInMinutes(\Carbon\Carbon::parse($t->uscita)) / 60;
+                    });
+                    return [
+                        'nome' => $d->nome . ' ' . $d->cognome,
+                        'ore'  => round($ore, 1),
+                    ];
+                }),
             ];
 
             return view('dashboard.admin', compact('dati'));
