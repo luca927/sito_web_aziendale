@@ -181,4 +181,33 @@ class TimbratureController extends Controller
 
         return $pdf->download("timbrature_{$nomeMese}.pdf");
     }
+
+    public function notifiche(Request $request)
+        {
+            $nuove = Timbratura::with('dipendente')
+                ->where(function($q) {
+                    // Nuove entrate negli ultimi 31 secondi
+                    $q->where('created_at', '>=', now()->subSeconds(31))
+                    ->whereNull('uscita');
+                })
+                ->orWhere(function($q) {
+                    // Uscite registrate negli ultimi 31 secondi
+                    $q->where('updated_at', '>=', now()->subSeconds(31))
+                    ->whereNotNull('uscita');
+                })
+                ->get()
+                ->map(function($t) {
+                    $isUscita = $t->uscita && $t->updated_at >= now()->subSeconds(31);
+                    return [
+                        'id'         => $t->id . ($isUscita ? '_uscita' : '_entrata'),
+                        'dipendente' => $t->dipendente->nome . ' ' . $t->dipendente->cognome,
+                        'tipo'       => $isUscita ? 'uscita' : 'entrata',
+                        'ora'        => $isUscita
+                            ? \Carbon\Carbon::parse($t->uscita)->format('H:i')
+                            : \Carbon\Carbon::parse($t->entrata)->format('H:i'),
+                    ];
+                });
+
+            return response()->json($nuove);
+        }
 }

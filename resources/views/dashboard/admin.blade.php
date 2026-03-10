@@ -33,40 +33,6 @@
         </div>
     </div>
 
-    {{-- Statistiche ore lavorate --}}
-    <div class="bg-white rounded-xl shadow p-6 mb-8">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-base font-semibold text-gray-800">
-                ⏱️ Ore Lavorate per Dipendente — {{ now()->locale('it')->isoFormat('MMMM YYYY') }}
-            </h2>
-            <span class="text-xs text-gray-400">Mese corrente</span>
-        </div>
-
-        @if($dati['ore_lavorate']->isEmpty())
-            <p class="text-sm text-gray-400 text-center py-6">Nessuna timbratura registrata questo mese.</p>
-        @else
-            <canvas id="grafico-ore" height="100"></canvas>
-
-            {{-- Tabella riepilogativa sotto il grafico --}}
-            <div class="mt-6 border-t border-gray-100 pt-4">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    @foreach($dati['ore_lavorate'] as $item)
-                    <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3">
-                        <div class="flex items-center gap-2">
-                            <div class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
-                                {{ strtoupper(substr($item['nome'], 0, 1)) }}
-                            </div>
-                            <span class="text-sm text-gray-700 font-medium">{{ $item['nome'] }}</span>
-                        </div>
-                        <span class="text-sm font-bold {{ $item['ore'] > 0 ? 'text-blue-600' : 'text-gray-400' }}">
-                            {{ $item['ore'] }}h
-                        </span>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        @endif
-    </div>
 
     {{-- Tabella combinata --}}
     <div class="bg-white rounded-xl shadow p-6 mb-8">
@@ -242,6 +208,41 @@
                 @endforelse
             </tbody>
         </table>
+    </div>
+
+    {{-- Statistiche ore lavorate --}}
+    <div class="bg-white rounded-xl shadow p-6 mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold text-gray-800">
+                ⏱️ Ore Lavorate per Dipendente — {{ now()->locale('it')->isoFormat('MMMM YYYY') }}
+            </h2>
+            <span class="text-xs text-gray-400">Mese corrente</span>
+        </div>
+
+        @if($dati['ore_lavorate']->isEmpty())
+            <p class="text-sm text-gray-400 text-center py-6">Nessuna timbratura registrata questo mese.</p>
+        @else
+            <canvas id="grafico-ore" height="100"></canvas>
+
+            {{-- Tabella riepilogativa sotto il grafico --}}
+            <div class="mt-6 border-t border-gray-100 pt-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    @foreach($dati['ore_lavorate'] as $item)
+                    <div class="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
+                                {{ strtoupper(substr($item['nome'], 0, 1)) }}
+                            </div>
+                            <span class="text-sm text-gray-700 font-medium">{{ $item['nome'] }}</span>
+                        </div>
+                        <span class="text-sm font-bold {{ $item['ore'] > 0 ? 'text-blue-600' : 'text-gray-400' }}">
+                            {{ $item['ore'] }}h
+                        </span>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </div>
 
     {{-- Ultimi Tracciamenti --}}

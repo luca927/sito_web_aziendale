@@ -29,6 +29,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/profilo/password', [ProfiloController::class, 'aggiornaPassword'])->name('profilo.password');
     Route::get('/timbrature/calendario', [TimbratureController::class, 'calendario'])->name('timbrature.calendario');
     Route::get('/timbrature/export-pdf', [TimbratureController::class, 'exportPdf'])->name('timbrature.export-pdf');
+    Route::get('/timbrature/notifiche', [TimbratureController::class, 'notifiche'])->name('timbrature.notifiche');
 
     // Route solo ADMIN
     Route::middleware(['admin'])->group(function () {
