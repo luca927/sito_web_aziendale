@@ -27,6 +27,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profilo', [ProfiloController::class, 'index'])->name('profilo.index');
     Route::post('/profilo/dati', [ProfiloController::class, 'aggiornaDati'])->name('profilo.dati');
     Route::post('/profilo/password', [ProfiloController::class, 'aggiornaPassword'])->name('profilo.password');
+    Route::get('/timbrature/calendario', [TimbratureController::class, 'calendario'])->name('timbrature.calendario');
 
     // Route solo ADMIN
     Route::middleware(['admin'])->group(function () {

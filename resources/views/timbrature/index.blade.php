@@ -151,65 +151,162 @@
 
 </div>
 
+{{-- CALENDARIO PRESENZE — visibile a tutti --}}
+<div class="mt-6 bg-white rounded-xl shadow p-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+        <h2 class="text-lg font-semibold text-gray-800">📅 Calendario Presenze</h2>
+
+        @if(auth()->user()->isAdmin())
+        <select id="filtro-dipendente"
+                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64">
+            <option value="">— Tutti i dipendenti —</option>
+            @foreach($dipendenti as $d)
+                <option value="{{ $d->id }}">{{ $d->nome }} {{ $d->cognome }}</option>
+            @endforeach
+        </select>
+        @endif
+    </div>
+
+    {{-- Legenda --}}
+    <div class="flex gap-4 mb-4 text-xs text-gray-500">
+        <span class="flex items-center gap-1">
+            <span class="w-3 h-3 rounded-full bg-green-600 inline-block"></span> Completata
+        </span>
+        <span class="flex items-center gap-1">
+            <span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span> In corso
+        </span>
+    </div>
+
+    <div id="calendario" data-is-admin="{{ auth()->user()->isAdmin() ? '1' : '0' }}"></div>
+
+    {{-- Popup dettaglio --}}
+    <div id="popup-timbratura"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+        <div class="bg-white rounded-xl shadow-xl p-6 w-80">
+            <h3 class="font-semibold text-gray-800 mb-3">📋 Dettaglio Timbratura</h3>
+            <div class="space-y-2 text-sm text-gray-600">
+                <p>🟢 Entrata: <strong id="popup-entrata">—</strong></p>
+                <p>🔴 Uscita: <strong id="popup-uscita">—</strong></p>
+                <p>⏱️ Ore lavorate: <strong id="popup-ore">—</strong></p>
+                <p>📋 Causale: <strong id="popup-causale">—</strong></p>
+            </div>
+            <button onclick="document.getElementById('popup-timbratura').classList.add('hidden')"
+                    class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium">
+                Chiudi
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- FullCalendar --}}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/it.global.min.js"></script>
+
+
 <script>
-const aggiornaOrologio = () => {
-    const orologio = document.getElementById('orologio');
-    const dataOggi = document.getElementById('data-oggi');
-    if (!orologio || !dataOggi) return;
+    const aggiornaOrologio = () => {
+        const orologio = document.getElementById('orologio');
+        const dataOggi = document.getElementById('data-oggi');
+        if (!orologio || !dataOggi) return;
 
-    const ora = new Date();
-    const pad = n => String(n).padStart(2, '0');
-    orologio.textContent = `${pad(ora.getHours())}:${pad(ora.getMinutes())}:${pad(ora.getSeconds())}`;
+        const ora = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        orologio.textContent = `${pad(ora.getHours())}:${pad(ora.getMinutes())}:${pad(ora.getSeconds())}`;
 
-    const giorni = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
-    const mesi = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
-                  'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-    dataOggi.textContent = `${giorni[ora.getDay()]} ${ora.getDate()} ${mesi[ora.getMonth()]} ${ora.getFullYear()}`;
-};
+        const giorni = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+        const mesi = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
+                    'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+        dataOggi.textContent = `${giorni[ora.getDay()]} ${ora.getDate()} ${mesi[ora.getMonth()]} ${ora.getFullYear()}`;
+    };
 
-setInterval(aggiornaOrologio, 1000);
-aggiornaOrologio();
+    setInterval(aggiornaOrologio, 1000);
+    aggiornaOrologio();
 
-// GPS
-let latitudine = null;
-let longitudine = null;
+    // GPS
+    let latitudine = null;
+    let longitudine = null;
 
-if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-        (pos) => {
-            latitudine  = pos.coords.latitude;
-            longitudine = pos.coords.longitude;
-            const gps = document.getElementById('gps-status');
-            if (gps) {
-                gps.innerHTML = `📍 Posizione rilevata: ${latitudine.toFixed(4)}, ${longitudine.toFixed(4)}`;
-                gps.classList.replace('bg-gray-100', 'bg-green-50');
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                latitudine  = pos.coords.latitude;
+                longitudine = pos.coords.longitude;
+                const gps = document.getElementById('gps-status');
+                if (gps) {
+                    gps.innerHTML = `📍 Posizione rilevata: ${latitudine.toFixed(4)}, ${longitudine.toFixed(4)}`;
+                    gps.classList.replace('bg-gray-100', 'bg-green-50');
+                }
+            },
+            () => {
+                const gps = document.getElementById('gps-status');
+                if (gps) gps.textContent = '⚠️ GPS non disponibile';
             }
-        },
-        () => {
-            const gps = document.getElementById('gps-status');
-            if (gps) gps.textContent = '⚠️ GPS non disponibile';
-        }
-    );
-}
-
-const timbra = (tipo) => {
-    if (tipo === 'entrata') {
-        const cantiere = document.getElementById('cantiere_id')?.value;
-        if (!cantiere) {
-            alert('Seleziona un cantiere prima di timbrare!');
-            return;
-        }
-        document.getElementById('input-cantiere').value = cantiere;
-        document.getElementById('input-causale').value = document.getElementById('causale').value;
-        document.getElementById('input-lat').value = latitudine ?? '';
-        document.getElementById('input-lng').value = longitudine ?? '';
-        document.getElementById('form-entrata').submit();
-    } else {
-        document.getElementById('input-lat-uscita').value = latitudine ?? '';
-        document.getElementById('input-lng-uscita').value = longitudine ?? '';
-        document.getElementById('form-uscita').submit();
+        );
     }
-};
+
+    const timbra = (tipo) => {
+        if (tipo === 'entrata') {
+            const cantiere = document.getElementById('cantiere_id')?.value;
+            if (!cantiere) {
+                alert('Seleziona un cantiere prima di timbrare!');
+                return;
+            }
+            document.getElementById('input-cantiere').value = cantiere;
+            document.getElementById('input-causale').value = document.getElementById('causale').value;
+            document.getElementById('input-lat').value = latitudine ?? '';
+            document.getElementById('input-lng').value = longitudine ?? '';
+            document.getElementById('form-entrata').submit();
+        } else {
+            document.getElementById('input-lat-uscita').value = latitudine ?? '';
+            document.getElementById('input-lng-uscita').value = longitudine ?? '';
+            document.getElementById('form-uscita').submit();
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const calEl = document.getElementById('calendario');
+        const isAdmin = calEl.dataset.isAdmin === '1';
+
+        const calendar = new FullCalendar.Calendar(calEl, {
+            initialView: 'dayGridMonth',
+            locale: 'it',
+            height: 500,
+            headerToolbar: {
+                left:   'prev,next today',
+                center: 'title',
+                right:  'dayGridMonth,listMonth'
+            },
+            events: (info, successCallback, failureCallback) => {
+                const dipId = isAdmin
+                    ? (document.getElementById('filtro-dipendente')?.value ?? '')
+                    : '';
+
+                fetch(`/timbrature/calendario?dipendente_id=${dipId}`)
+                    .then(r => r.json())
+                    .then(data => successCallback(data))
+                    .catch(() => failureCallback());
+            },
+            eventClick: (info) => {
+                const p = info.event.extendedProps;
+                document.getElementById('popup-entrata').textContent = p.entrata ?? '—';
+                document.getElementById('popup-uscita').textContent  = p.uscita  ?? '—';
+                document.getElementById('popup-ore').textContent     = p.ore ? p.ore + 'h' : '—';
+                document.getElementById('popup-causale').textContent = p.causale ?? '—';
+                document.getElementById('popup-timbratura').classList.remove('hidden');
+            },
+            eventDisplay: 'block',
+            displayEventTime: false,
+        });
+
+        calendar.render();
+
+        // Filtro dipendente admin
+        const filtro = document.getElementById('filtro-dipendente');
+        if (filtro) {
+            filtro.addEventListener('change', () => calendar.refetchEvents());
+        }
+    });
 </script>
 
 @endsection
