@@ -23,6 +23,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboard — accessibile da entrambi i ruoli
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/aggiorna-stato/{dipendente}', [App\Http\Controllers\DashboardController::class, 'aggiornaStato'])
+    ->name('dashboard.aggiorna-stato');
 
     Route::get('/profilo', [ProfiloController::class, 'index'])->name('profilo.index');
     Route::post('/profilo/dati', [ProfiloController::class, 'aggiornaDati'])->name('profilo.dati');

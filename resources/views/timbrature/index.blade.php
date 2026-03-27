@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="py-6">
-
+<div id="app">
     @if(auth()->user()->isAdmin())
 
         {{-- VISTA ADMIN — solo tabella timbrature dipendenti --}}
@@ -87,7 +87,7 @@
                 <p class="text-center text-gray-400 py-8">Nessuna timbratura registrata oggi.</p>
             @endforelse
         </div>
-
+</div>
     @else
 
         {{-- VISTA DIPENDENTE — orologio + timbra --}}
@@ -311,6 +311,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         const calEl = document.getElementById('calendario');
+        if (!calEl) return;
         const isAdmin = calEl.dataset.isAdmin === '1';
 
         const calendar = new FullCalendar.Calendar(calEl, {

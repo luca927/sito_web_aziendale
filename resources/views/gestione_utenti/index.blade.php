@@ -337,7 +337,8 @@
         </div>
     </div>
 </div>
-
+@endsection
+@push('scripts')
 <script>
 const gestioneUtenti = () => ({
     modaleModifica: false,
@@ -398,5 +399,4 @@ document.getElementById('search').addEventListener('input', (e) => {
     });
 });
 </script>
-
-@endsection
+@endpush

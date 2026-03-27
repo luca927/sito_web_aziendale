@@ -98,7 +98,8 @@
     </div>
 
 </div>
-
+@endsection
+@push('scripts')
 <script>
 const cerca = () => {
     const nome      = document.getElementById('cerca-nome').value.toLowerCase();
@@ -117,5 +118,4 @@ document.getElementById('cerca-nome').addEventListener('input', cerca);
 document.getElementById('cerca-indirizzo').addEventListener('input', cerca);
 document.getElementById('cerca-cf').addEventListener('input', cerca);
 </script>
-
-@endsection
+@endpush

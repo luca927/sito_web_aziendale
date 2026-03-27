@@ -55,8 +55,7 @@
             <tbody>
                 @forelse($dati['dati_combinati'] as $d)
                 <tr class="border-b border-gray-100 hover:bg-gray-50 combinato-row"
-                    data-nome="{{ strtolower($d->nome . ' ' . $d->cognome) }}">
-
+                    data-search="{{ strtolower($d->nome . ' ' . $d->cognome) }} {{ strtolower($d->cantieri->pluck('nome')->implode(' ')) }} {{ strtolower($d->mezzi->pluck('targa')->implode(' ')) }}">
                     {{-- Dipendente --}}
                     <td class="py-3 px-4">
                         <div class="flex items-center gap-3">
@@ -266,17 +265,28 @@
     </div>
 
 </div>
-
+@endsection
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const dashboard = () => ({});
 
-    document.getElementById('cerca-combinati').addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
-        document.querySelectorAll('.combinato-row').forEach(row => {
-            row.style.display = row.dataset.nome.includes(query) ? '' : 'none';
-        });
+   document.getElementById('cerca-combinati').addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    const rows = document.querySelectorAll('.combinato-row');
+
+    rows.forEach(row => {
+        // Leggiamo il "baule" di dati che abbiamo preparato nel data-search
+        const searchContent = row.getAttribute('data-search') || '';
+        
+        // Se la riga contiene quello che scriviamo, la lasciamo, altrimenti la nascondiamo
+        if (searchContent.includes(query)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
     });
+});
 
     document.addEventListener('DOMContentLoaded', () => {
         const canvas = document.getElementById('grafico-ore');
@@ -332,5 +342,4 @@
         });
     });
 </script>
-
-@endsection
+@endpush
